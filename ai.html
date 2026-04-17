@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mark.AI — Your Personal AI Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+ 
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a26;
+      --accent: #6c5ce7;
+      --accent2: #a29bfe;
+      --accent3: #00cec9;
+      --text: #eef0f6;
+      --text-dim: #8a8da0;
+      --glow: rgba(108, 92, 231, 0.3);
+      --glow2: rgba(0, 206, 201, 0.2);
+    }
+ 
+    html { scroll-behavior: smooth; }
+ 
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+ 
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+ 
+    /* Animated BG */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(108,92,231,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(108,92,231,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+      pointer-events: none;
+    }
+ 
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+      animation: orbFloat 20s ease-in-out infinite;
+    }
+ 
+    .bg-orb-1 { width: 500px; height: 500px; background: var(--accent); top: -100px; right: -100px; }
+    .bg-orb-2 { width: 400px; height: 400px; background: var(--accent3); bottom: -100px; left: -100px; animation-delay: -10s; }
+    .bg-orb-3 { width: 300px; height: 300px; background: #fd79a8; top: 50%; left: 50%; animation-delay: -5s; }
+ 
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+ 
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(10, 10, 15, 0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(108, 92, 231, 0.1);
+      transition: all 0.3s;
+    }
+ 
+    nav.scrolled { padding: 12px 40px; background: rgba(10, 10, 15, 0.95); }
+ 
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: var(--text);
+    }
+ 
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 900;
+      color: white;
+    }
+ 
+    .logo span { color: var(--accent2); }
+ 
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+ 
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.3s;
+      position: relative;
+    }
+ 
+    .nav-links a:hover { color: var(--text); }
+ 
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+ 
+    .nav-links a:hover::after { width: 100%; }
+ 
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+ 
+    .btn-primary:hover {
+      background: #7c6ef0;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--glow);
+    }
+ 
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid rgba(108, 92, 231, 0.4);
+      padding: 10px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+ 
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      background: rgba(108, 92, 231, 0.1);
+      transform: translateY(-2px);
+    }
+ 
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      z-index: 1001;
+    }
+ 
+    .hamburger span {
+      width: 26px;
+      height: 2px;
+      background: var(--text);
+      transition: all 0.3s;
+      border-radius: 2px;
+    }
+ 
+    .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.active span:nth-child(2) { opacity: 0; }
+    .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+ 
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 20px 80px;
+      position: relative;
+      z-index: 1;
+    }
+ 
+    .hero-content { max-width: 800px; }
+ 
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(108, 92, 231, 0.1);
+      border: 1px solid rgba(108, 92, 231, 0.25);
+      padding: 6px 16px;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      color: var(--accent2);
+      margin-bottom: 30px;
+      animation: fadeInDown 0.8s ease;
+    }
+ 
+    .hero-badge .dot {
+      width: 8px; height: 8px;
+      background: var(--accent3);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+ 
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+ 
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.8s ease;
+    }
+ 
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--accent2), var(--accent3), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+ 
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-dim);
+      max-width: 580px;
+      margin: 0 auto 40px;
+      animation: fadeInUp 0.8s ease 0.2s both;
+    }
+ 
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeInUp 0.8s ease 0.4s both;
+    }
+ 
+    .hero-visual {
+      margin-top: 60px;
+      animation: fadeInUp 0.8s ease 0.6s both;
+    }
+ 
+    .ai-chat-preview {
+      background: var(--surface);
+      border: 1px solid rgba(108, 92, 231, 0.15);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: left;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+ 
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+ 
+    .chat-avatar {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+ 
+    .chat-name { font-weight: 600; font-size: 0.95rem; }
+    .chat-status { font-size: 0.75rem; color: var(--accent3); }
+ 
+    .chat-messages { display: flex; flex-direction: column; gap: 14px; }
+ 
+    .chat-msg {
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      max-width: 85%;
+      line-height: 1.5;
+      opacity: 0;
+      animation: msgIn 0.5s ease forwards;
+    }
+ 
+    .chat-msg.ai {
+      background: rgba(108, 92, 231, 0.12);
+      border: 1px solid rgba(108, 92, 231, 0.15);
+      align-self: flex-start;
+    }
+ 
+    .chat-msg.user {
+      background: var(--surface2);
+      align-self: flex-end;
+      color: var(--text-dim);
+    }
+ 
+    .chat-msg:nth-child(1) { animation-delay: 1s; }
+    .chat-msg:nth-child(2) { animation-delay: 1.8s; }
+    .chat-msg:nth-child(3) { animation-delay: 2.6s; }
+    .chat-msg:nth-child(4) { animation-delay: 3.4s; }
+ 
+    @keyframes msgIn { to { opacity: 1; } }
+ 
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      opacity: 0;
+      animation: msgIn 0.5s ease 4s forwards;
+    }
+ 
+    .typing-indicator span {
+      width: 7px; height: 7px;
+      background: var(--accent2);
+      border-radius: 50%;
+      animation: typingBounce 1.4s ease-in-out infinite;
+    }
+ 
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+ 
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-8px); }
+    }
+ 
+    /* STATS */
+    .stats-bar {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      flex-wrap: wrap;
+      padding: 40px 20px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      background: rgba(18, 18, 26, 0.5);
+    }
+ 
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--accent2);
+    }
+    .stat-label { font-size: 0.85rem; color: var(--text-dim); margin-top: 4px; }
+ 
+    /* SECTIONS */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 20px;
+    }
+ 
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+ 
+    .section-header .tag {
+      font-size: 0.8rem;
+      color: var(--accent3);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+ 
+    .section-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+ 
+    .section-header p {
+      color: var(--text-dim);
+      max-width: 550px;
+      margin: 0 auto;
+      font-size: 1.05rem;
+    }
+ 
+    /* FEATURES */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+ 
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 36px 30px;
+      transition: all 0.4s;
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+    }
+ 
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent3));
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+ 
+    .feature-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(108, 92, 231, 0.2);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+ 
+    .feature-card:hover::before { opacity: 1; }
+ 
+    .feature-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+ 
+    .fi-1 { background: rgba(108, 92, 231, 0.15); }
+    .fi-2 { background: rgba(0, 206, 201, 0.15); }
+    .fi-3 { background: rgba(253, 121, 168, 0.15); }
+    .fi-4 { background: rgba(255, 234, 167, 0.15); }
+    .fi-5 { background: rgba(116, 185, 255, 0.15); }
+    .fi-6 { background: rgba(162, 155, 254, 0.15); }
+ 
+    .feature-card h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+ 
+    .feature-card p { color: var(--text-dim); font-size: 0.9rem; line-height: 1.6; }
+ 
+    /* SERVICES */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+ 
+    .service-card {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 28px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      transition: all 0.3s;
+    }
+ 
+    .service-card:hover {
+      background: var(--surface2);
+      border-color: rgba(108, 92, 231, 0.2);
+      transform: translateX(6px);
+    }
+ 
+    .service-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: rgba(108, 92, 231, 0.25);
+      line-height: 1;
+    }
+ 
+    .service-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 6px; }
+    .service-card p { font-size: 0.85rem; color: var(--text-dim); }
+ 
+    /* HOW IT WORKS */
+    .steps-container {
+      max-width: 700px;
+      margin: 0 auto;
+      position: relative;
+    }
+ 
+    .steps-container::before {
+      content: '';
+      position: absolute;
+      left: 28px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent), var(--accent3));
+      opacity: 0.3;
+    }
+ 
+    .step {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 40px;
+      align-items: flex-start;
+    }
+ 
+    .step-circle {
+      width: 58px;
+      height: 58px;
+      min-width: 58px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--accent2);
+      z-index: 1;
+    }
+ 
+    .step-content h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 6px; }
+    .step-content p { color: var(--text-dim); font-size: 0.9rem; }
+ 
+    /* CHAT DEMO */
+    .chat-demo-section {
+      max-width: 700px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid rgba(108, 92, 231, 0.15);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+ 
+    .chat-demo-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(108, 92, 231, 0.05);
+    }
+ 
+    .chat-demo-body {
+      padding: 24px;
+      min-height: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+ 
+    .chat-demo-input {
+      padding: 16px 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      gap: 12px;
+    }
+ 
+    .chat-demo-input input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px 18px;
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border 0.3s;
+      font-family: 'Inter', sans-serif;
+    }
+ 
+    .chat-demo-input input:focus { border-color: var(--accent); }
+    .chat-demo-input input::placeholder { color: var(--text-dim); }
+ 
+    .send-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--accent);
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+ 
+    .send-btn:hover { background: #7c6ef0; transform: scale(1.05); }
+ 
+    .demo-msg {
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      max-width: 85%;
+      line-height: 1.5;
+      animation: slideIn 0.3s ease;
+    }
+ 
+    .demo-msg.ai-msg {
+      background: rgba(108, 92, 231, 0.12);
+      border: 1px solid rgba(108, 92, 231, 0.15);
+      align-self: flex-start;
+    }
+ 
+    .demo-msg.user-msg {
+      background: var(--surface2);
+      align-self: flex-end;
+    }
+ 
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+ 
+    /* OWNERSHIP */
+    .ownership-section {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+ 
+    .ownership-card {
+      background: linear-gradient(135deg, rgba(108, 92, 231, 0.1), rgba(0, 206, 201, 0.05));
+      border: 1px solid rgba(108, 92, 231, 0.2);
+      border-radius: 24px;
+      padding: 48px 40px;
+    }
+ 
+    .ownership-card .shield { font-size: 3rem; margin-bottom: 16px; }
+    .ownership-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+ 
+    .ownership-card p { color: var(--text-dim); font-size: 1rem; max-width: 500px; margin: 0 auto; }
+    .ownership-card .owner-name {
+      color: var(--accent2);
+      font-weight: 700;
+      font-size: 1.2rem;
+      display: block;
+      margin-top: 16px;
+    }
+ 
+    /* CTA */
+    .cta-section {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+ 
+    .cta-section h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+ 
+    .cta-section p { color: var(--text-dim); font-size: 1.05rem; margin-bottom: 32px; }
+    .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+ 
+    /* FOOTER */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      padding: 60px 20px 30px;
+    }
+ 
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+    }
+ 
+    .footer-brand p { color: var(--text-dim); font-size: 0.85rem; margin-top: 12px; max-width: 280px; }
+ 
+    .footer-col h4 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+ 
+    .footer-col a {
+      display: block;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      transition: color 0.3s;
+    }
+ 
+    .footer-col a:hover { color: var(--accent2); }
+ 
+    .footer-bottom {
+      text-align: center;
+      padding-top: 40px;
+      margin-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+ 
+    /* ANIMATIONS */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+ 
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+ 
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.7s ease;
+    }
+ 
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+ 
+    /* MOBILE */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 10, 15, 0.98);
+      z-index: 999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+    }
+ 
+    .mobile-menu.active { display: flex; }
+ 
+    .mobile-menu a {
+      text-decoration: none;
+      color: var(--text);
+      font-size: 1.3rem;
+      font-weight: 600;
+      transition: color 0.3s;
+    }
+ 
+    .mobile-menu a:hover { color: var(--accent2); }
+ 
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .footer-content { grid-template-columns: 1fr 1fr; }
+      .stats-bar { gap: 30px; }
+    }
+ 
+    @media (max-width: 600px) {
+      nav { padding: 14px 20px; }
+      section { padding: 70px 16px; }
+      .footer-content { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .services-grid { grid-template-columns: 1fr; }
+      .ownership-card { padding: 32px 24px; }
+      .chat-demo-input input { padding: 10px 14px; }
+    }
+  </style>
+</head>
+<body>
+ 
+  <div class="bg-grid"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+ 
+  <!-- NAV -->
+  <nav id="navbar">
+    <a href="#" class="logo">
+      <div class="logo-icon">M</div>
+      Mark<span>.AI</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#services">Services</a>
+      <a href="#how">How It Works</a>
+      <a href="#demo">Try Mark</a>
+      <a href="#" class="btn-primary">Get Started</a>
+    </div>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+ 
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#features" onclick="toggleMenu()">Features</a>
+    <a href="#services" onclick="toggleMenu()">Services</a>
+    <a href="#how" onclick="toggleMenu()">How It Works</a>
+    <a href="#demo" onclick="toggleMenu()">Try Mark</a>
+    <a href="#" class="btn-primary" onclick="toggleMenu()">Get Started</a>
+  </div>
+ 
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        AI-Powered Personal Assistant — Now Live
+      </div>
+      <h1>Meet <span class="gradient-text">Mark.AI</span><br>Your Smartest Companion</h1>
+      <p>A fast, powerful AI personal assistant that connects to everything in your world. Diet plans, local services, smart scheduling — all in one place, on every device.</p>
+      <div class="hero-buttons">
+        <a href="#demo" class="btn-primary">💬 Chat with Mark</a>
+        <a href="#features" class="btn-secondary">Explore Features →</a>
+      </div>
+      <div class="hero-visual">
+        <div class="ai-chat-preview">
+          <div class="chat-header">
+            <div class="chat-avatar">M</div>
+            <div>
+              <div class="chat-name">Mark.AI</div>
+              <div class="chat-status">● Online — ready to help</div>
+            </div>
+          </div>
+          <div class="chat-messages">
+            <div class="chat-msg user">Hey Mark, what's on my diet plan today?</div>
+            <div class="chat-msg ai">Good morning! 🌅 Today's meal plan: oatmeal with berries for breakfast, grilled chicken salad for lunch, and salmon with veggies for dinner. You're 200 cal under target — great job!</div>
+            <div class="chat-msg user">Find me a nearby gym open right now.</div>
+            <div class="chat-msg ai">📍 Found 3 gyms near you. FitZone is 0.4 mi away and open until 10 PM. Want me to navigate you there?</div>
+            <div class="typing-indicator"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num" data-target="50">0</div><div class="stat-label">AI Models Integrated</div></div>
+    <div class="stat"><div class="stat-num" data-target="120">0</div><div class="stat-label">Local Services</div></div>
+    <div class="stat"><div class="stat-num" data-target="10">0</div><div class="stat-label">Million+ Users</div></div>
+    <div class="stat"><div class="stat-num" data-target="99">0</div><div class="stat-label">% Uptime</div></div>
+  </div>
+ 
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="section-header reveal">
+      <div class="tag">Features</div>
+      <h2>Everything You Need, One AI Away</h2>
+      <p>Mark.AI is your all-in-one personal assistant with the intelligence to handle anything.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-1">🧠</div>
+        <h3>Deep Intelligence</h3>
+        <p>Powered by advanced AI models, Mark understands context, learns your preferences, and delivers precise answers instantly.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-2">🥗</div>
+        <h3>Personal Diet Trainer</h3>
+        <p>Custom meal plans, calorie tracking, nutrition advice, and fitness coaching — tailored to your body and goals.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-3">📍</div>
+        <h3>Local Services Finder</h3>
+        <p>Discover nearby restaurants, gyms, shops, plumbers, electricians — any local service, found and booked in seconds.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-4">📱</div>
+        <h3>Full Device Access</h3>
+        <p>Works seamlessly on phones, tablets, desktops, and smartwatches. Your personal assistant everywhere you go.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-5">⚡</div>
+        <h3>Lightning Fast</h3>
+        <p>Sub-second response times. Mark thinks and replies faster than you can blink, even with complex multi-step requests.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-6">🔒</div>
+        <h3>Privacy First</h3>
+        <p>End-to-end encryption. Your data stays yours. Mark works for you, not advertisers or third parties.</p>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- SERVICES -->
+  <section id="services" style="background: rgba(18,18,26,0.4);">
+    <div class="section-header reveal">
+      <div class="tag">Services</div>
+      <h2>Local Services at Your Fingertips</h2>
+      <p>Mark connects you with verified local service providers instantly.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal">
+        <div class="service-num">01</div>
+        <div><h3>Home Repairs</h3><p>Plumbers, electricians, HVAC — find trusted pros near you in seconds.</p></div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">02</div>
+        <div><h3>Health & Fitness</h3><p>Gyms, personal trainers, yoga studios, nutritionists — all nearby.</p></div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">03</div>
+        <div><h3>Food & Dining</h3><p>Restaurants, meal delivery, catering — matched to your diet preferences.</p></div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">04</div>
+        <div><h3>Transportation</h3><p>Rides, car services, bike rentals — get moving fast and affordably.</p></div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">05</div>
+        <div><h3>Beauty & Wellness</h3><p>Salons, spas, massage therapists — self-care bookings made easy.</p></div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">06</div>
+        <div><h3>Education & Tutoring</h3><p>Tutors, language classes, skill workshops — learn anything nearby.</p></div>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="section-header reveal">
+      <div class="tag">How It Works</div>
+      <h2>Three Steps to Smarter Living</h2>
+      <p>Getting started with Mark.AI is effortless.</p>
+    </div>
+    <div class="steps-container">
+      <div class="step reveal">
+        <div class="step-circle">1</div>
+        <div class="step-content">
+          <h3>Sign Up & Personalize</h3>
+          <p>Create your account and tell Mark about your preferences, diet goals, location, and lifestyle. The more Mark knows, the better he helps.</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-circle">2</div>
+        <div class="step-content">
+          <h3>Ask Anything, Anywhere</h3>
+          <p>Chat with Mark via text or voice on any device. Ask for meal plans, find local services, manage your schedule, get instant answers — no limits.</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-circle">3</div>
+        <div class="step-content">
+          <h3>Live Smarter Every Day</h3>
+          <p>Mark learns and adapts. Over time, he anticipates your needs before you even ask — becoming your indispensable personal AI companion.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- CHAT DEMO -->
+  <section id="demo" style="background: rgba(18,18,26,0.4);">
+    <div class="section-header reveal">
+      <div class="tag">Live Demo</div>
+      <h2>Try Talking to Mark</h2>
+      <p>Experience Mark.AI's intelligence right here. Type a message below.</p>
+    </div>
+    <div class="chat-demo-section reveal">
+      <div class="chat-demo-header">
+        <div class="chat-avatar">M</div>
+        <div>
+          <div class="chat-name">Mark.AI</div>
+          <div class="chat-status">● Online</div>
+        </div>
+      </div>
+      <div class="chat-demo-body" id="chatBody">
+        <div class="demo-msg ai-msg">Hi there! 👋 I'm Mark, your personal AI assistant. Ask me anything — diet tips, local services, scheduling, or just chat!</div>
+      </div>
+      <div class="chat-demo-input">
+        <input type="text" id="chatInput" placeholder="Type a message to Mark..." onkeypress="if(event.key==='Enter')sendChat()">
+        <button class="send-btn" onclick="sendChat()">↑</button>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- OWNERSHIP -->
+  <section>
+    <div class="ownership-section reveal">
+      <div class="ownership-card">
+        <div class="shield">🛡️</div>
+        <h3>Rights & Ownership</h3>
+        <p>Mark.AI is a proprietary artificial intelligence platform. All intellectual property rights, technology, and brand assets are exclusively owned and operated by:</p>
+        <span class="owner-name">Mubin Makwa</span>
+        <p style="margin-top: 16px; font-size: 0.85rem;">© 2026 Mark.AI — All Rights Reserved. Unauthorized use, reproduction, or distribution is strictly prohibited.</p>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- CTA -->
+  <section style="background: rgba(18,18,26,0.4);">
+    <div class="cta-section reveal">
+      <h2>Ready for Your AI<br><span class="gradient-text">Personal Assistant?</span></h2>
+      <p>Join millions who already use Mark.AI to live smarter, eat better, and find local services effortlessly.</p>
+      <div class="cta-buttons">
+        <a href="#" class="btn-primary">🚀 Get Mark.AI Free</a>
+        <a href="#" class="btn-secondary">📱 Download App</a>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <div class="logo-icon">M</div>
+          Mark<span>.AI</span>
+        </a>
+        <p>Your intelligent personal assistant. Built to make life simpler, smarter, and more connected.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#">Features</a>
+        <a href="#">Pricing</a>
+        <a href="#">API</a>
+        <a href="#">Changelog</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About</a>
+        <a href="#">Careers</a>
+        <a href="#">Blog</a>
+        <a href="#">Press</a>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <a href="#">Help Center</a>
+        <a href="#">Contact</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Mark.AI — All rights reserved. Owned by Mubin Makwa.</p>
+    </div>
+  </footer>
+ 
+  <script>
+    // Mobile menu
+    function toggleMenu() {
+      document.getElementById('hamburger').classList.toggle('active');
+      document.getElementById('mobileMenu').classList.toggle('active');
+    }
+ 
+    // Nav scroll effect
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+    });
+ 
+    // Reveal on scroll
+    const reveals = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+    }, { threshold: 0.15 });
+    reveals.forEach(el => revealObserver.observe(el));
+ 
+    // Counter animation
+    const counters = document.querySelectorAll('.stat-num');
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = parseInt(el.dataset.target);
+          let current = 0;
+          const increment = target / 60;
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) { current = target; clearInterval(timer); }
+            el.textContent = Math.round(current) + (target === 99 ? '%' : target === 10 ? 'M+' : '+');
+          }, 25);
+          counterObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(c => counterObserver.observe(c));
+ 
+    // Chat demo AI
+    const responses = {
+      diet: [
+        "Based on your profile, I recommend a high-protein Mediterranean diet. Today's plan: Greek yogurt & granola for breakfast 🥣, quinoa bowl for lunch 🥗, and grilled fish with roasted veggies for dinner 🐟. That's about 1,800 calories — right on target!",
+        "Your weekly nutrition report: Protein intake is excellent at 130g/day, but you're slightly low on fiber. I'd suggest adding more legumes and whole grains. Want me to adjust your meal plan? 📊"
+      ],
+      service: [
+        "📍 I found 5 top-rated services near you! The closest is 'QuickFix Plumbing' — 4.9 stars, 0.3 miles away, and available right now. Want me to book an appointment?",
+        "Here are nearby options: 🏋️ FitZone Gym (0.4mi), 🍕 Bella's Kitchen (0.2mi), 💈 Sharp Cuts Barbershop (0.5mi). Which one interests you?"
+      ],
+      greeting: [
+        "Hey! Great to chat with you! 😊 I'm Mark, your personal AI assistant. I can help with diet planning, finding local services, managing your schedule, and so much more. What do you need today?",
+        "Hello! 👋 Nice to meet you! I'm here to make your life easier. Ask me about meal plans, local businesses, fitness tips, or anything else on your mind!"
+      ],
+      default: [
+        "That's a great question! 🤔 As your personal AI assistant, I'm constantly learning to help you better. I can assist with diet plans, local services, scheduling, fitness tracking, and general knowledge. What would you like to explore?",
+        "Interesting! I'm processing that with my full AI capabilities. 🧠 Fun fact: I can handle over 10,000 topics across health, lifestyle, local services, and productivity. Try asking me about your diet or nearby services!",
+        "I'm on it! ⚡ As Mark.AI, I have access to real-time local data, nutritional databases, and smart scheduling tools. Let me know how I can help you today!",
+        "Great thought! 💡 I'm here to help with anything — from finding the best pizza nearby to optimizing your entire weekly meal plan. Just say the word!"
+      ]
+    };
+ 
+    function getResponse(msg) {
+      const lower = msg.toLowerCase();
+      if (lower.match(/diet|food|meal|eat|nutrition|calorie|breakfast|lunch|dinner|weight/)) {
+        return responses.diet[Math.floor(Math.random() * responses.diet.length)];
+      } else if (lower.match(/service|find|near|local|gym|restaurant|plumber|shop|store|book/)) {
+        return responses.service[Math.floor(Math.random() * responses.service.length)];
+      } else if (lower.match(/hi|hello|hey|sup|yo|greet|morning|evening/)) {
+        return responses.greeting[Math.floor(Math.random() * responses.greeting.length)];
+      } else {
+        return responses.default[Math.floor(Math.random() * responses.default.length)];
+      }
+    }
+ 
+    function sendChat() {
+      const input = document.getElementById('chatInput');
+      const body = document.getElementById('chatBody');
+      const msg = input.value.trim();
+      if (!msg) return;
+ 
+      // User message
+      const userDiv = document.createElement('div');
+      userDiv.className = 'demo-msg user-msg';
+      userDiv.textContent = msg;
+      body.appendChild(userDiv);
+      input.value = '';
+      body.scrollTop = body.scrollHeight;
+ 
+      // Typing indicator
+      const typing = document.createElement('div');
+      typing.className = 'typing-indicator';
+      typing.style.opacity = '1';
+      typing.innerHTML = '<span></span><span></span><span></span>';
+      body.appendChild(typing);
+      body.scrollTop = body.scrollHeight;
+ 
+      // AI response after delay
+      setTimeout(() => {
+        body.removeChild(typing);
+        const aiDiv = document.createElement('div');
+        aiDiv.className = 'demo-msg ai-msg';
+        aiDiv.textContent = getResponse(msg);
+        body.appendChild(aiDiv);
+        body.scrollTop = body.scrollHeight;
+      }, 1200 + Math.random() * 800);
+    }
+  </script>
+</body>
+</html>
